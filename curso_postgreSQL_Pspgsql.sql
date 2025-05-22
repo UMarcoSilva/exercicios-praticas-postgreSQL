@@ -69,3 +69,60 @@ CREATE OR REPLACE FUNCTION salarioOk(instrutor instrutor) RETURNS VARCHAR AS $$
 $$ LANGUAGE plpgsql;
 
 SELECT nome, salario, salarioOk(instrutor) FROM instrutor;
+
+DROP FUNCTION tabuada;
+
+CREATE OR REPLACE FUNCTION tabuadaComExitWhen(numero INTEGER) RETURNS SETOF VARCHAR(255) AS $$
+	DECLARE
+		multiplicador INTEGER DEFAULT 1;
+	BEGIN
+			LOOP
+			RETURN NEXT numero || ' x ' || multiplicador || ' = ' || numero * multiplicador;
+			multiplicador := multiplicador +1;
+			EXIT WHEN multiplicador = 11;
+		END LOOP;
+	END;
+$$ LANGUAGE plpgsql;
+SELECT tabuadaComExitWhen(10);
+
+
+CREATE OR REPLACE FUNCTION tabuada(numero INTEGER) RETURNS SETOF VARCHAR(255) AS $$
+	DECLARE
+		multiplicador INTEGER DEFAULT 1;
+	BEGIN
+			WHILE multiplicador <= 10 LOOP
+			RETURN NEXT numero || ' x ' || multiplicador || ' = ' || numero * multiplicador;
+			multiplicador := multiplicador +1;
+		END LOOP;
+	END;
+$$ LANGUAGE plpgsql;
+SELECT tabuada(10);
+
+CREATE OR REPLACE FUNCTION tabuadaComFor(numero INTEGER) RETURNS SETOF VARCHAR(255) AS $$
+	BEGIN
+		FOR multiplicador IN 1..9 LOOP
+			RETURN NEXT numero || ' x ' || multiplicador || ' = ' || numero * multiplicador;
+		END LOOP;
+	END;
+$$ LANGUAGE plpgsql;
+
+SELECT tabuadaComFor(10);
+
+DROP FUNCTION instrutorComSalario;
+CREATE OR REPLACE FUNCTION instrutorComSalario(OUT nome_instrutor VARCHAR, OUT status_salario VARCHAR) 
+RETURNS SETOF record AS $$
+DECLARE
+	instrutor_atual instrutor;
+BEGIN
+	FOR instrutor_atual IN SELECT * FROM instrutor LOOP
+		nome_instrutor := instrutor_atual.nome;
+		status_salario := salarioOk(instrutor_atual); -- passa o registro completo
+
+		RETURN NEXT;
+	END LOOP;	
+END;
+$$ LANGUAGE plpgsql;
+
+SELECT * FROM instrutorComSalario();
+
+
